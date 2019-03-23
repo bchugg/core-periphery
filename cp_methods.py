@@ -6,13 +6,13 @@ import numpy as np
 import networkx as nx
 import copy
 
-def sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
+def sbm(k, p, size_c, size_p):
 	# Return graph drawn from stochastic block model 
 	# with size_c nodes in core, size_p in periphery, 
 	# and probabilities 
-	# - prob_cp between core and periphery nodes
-	# - prob_cc between core nodes 
-	# - prob_pp between peripheral nodes
+	# - k*p between core and periphery nodes
+	# - k^2*p between core nodes 
+	# - p between peripheral nodes
 	# Returns an unweighted and undirected matrix
 
 	N = size_c + size_p
@@ -21,15 +21,15 @@ def sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
 
 	for i in range(N):
 		for j in range(i+1,N):
-			p = np.random.random()
+			r = np.random.random()
 			if i < size_c and j < size_c: # Both in core
-				if p < prob_cc: 
+				if r < k*k*p: 
 					G.add_edge(i,j)
 			elif i < size_c:			# One in core, on in periphery
-				if p < prob_cp:
+				if r < k*p:
 				 	G.add_edge(i,j)
 			else:						# Both in periphery 
-				if p < prob_pp:
+				if r < p:
 					G.add_edge(i,j)
 
 	return G
@@ -129,7 +129,57 @@ def path_core(G):
 	return path_cores
 
 
+def CC(U, closeness):
+	# Calculate closeness of the subgraph U
+	if nx.is_empty(U): return 0
+	
+	denom = sum([1/float(closeness[i]) for i in U.nodes()])
+	return len(U) / float(denom)
+
+def max_CC(G, max_degree, N):
+	# Calculate k core U which maximizes CC(U), and return CC(U) / CC(V) 
+
+	# Calculate closeness for each vertex
+	C = nx.closeness_centrality(G)
+	closeness = [C[i] for i in range(N)]
+
+	max_score =  max(list(map(lambda k: CC(nx.k_core(G,k), closeness), range(max_degree))))
+	return max_score / float(CC(G, closeness))
+
 		
+def holme_coefficient(G, T):
+	# Calculate holme coefficient for a graph G
+	# - T is number of trials taken to be the average for null model
+
+	N = nx.number_of_nodes(G)
+	deg_sequence = list(map(lambda i: G.degree(i), range(N)))
+	max_degree = max(deg_sequence)
+
+	# Compute average coefficient for graphs with same degree sequence
+	avg_coeff = 0
+	for t in range(T):
+		# Create graph with same degree sequence; remove multiedges and self loops
+		H = nx.Graph(nx.configuration_model(deg_sequence))
+		H.remove_edges_from(nx.selfloop_edges(H))
+		avg_coeff += max_CC(H, max_degree, N)
+
+	avg_coeff /= float(T)
+
+	return max_CC(G, max_degree, N) - avg_coeff
+
+
+
+
+
+
+
+	
+	
+
+
+
+	
+
 
 
 
