@@ -52,24 +52,33 @@ def core_score_vs_index(k, p, size_c, size_p):
 	plt.show()
 
 
-
-
-def test_random_walk(G, name):
-	# Test random walkers core-periphery profile method 
+def colormap_test(G, name):
+	# Test all methods by graphing colormaps of corescores
 	# name is name of graph for saving purposes
-	[profile, persistences] = periphery_profile(G)
 	N = nx.number_of_nodes(G)
 	
-	plt.figure(1)
-	generate_figure(G, range(N), list(map(lambda x: G.degree(x), range(N))), 
-				"Colormap of Degree Structure", 'cm_degree_'+name+'.png')
-
-	plt.figure(2)
+	[profile, persistences] = periphery_profile(G)
+	plt.figure(1) # Random walker method
 	generate_figure(G, range(N), list(map(lambda i: persistences[profile.index(i)], range(N))), 
 				"Colormap of CP Structure using Random Walkers", 'cm_rw_'+name+'png')
 
+	plt.figure(2) # Path-core method
+	generate_figure(G, range(N), path_core(G),
+		"Colormap of Path-Core Scores", 'cm_pathcore_'+name+'.png')
+
+	plt.figure(3) # Degree Method
+	generate_figure(G, range(N), list(map(lambda x: G.degree(x), range(N))), 
+				"Colormap of Degree Structure", 'cm_degree_'+name+'.png')
+
+
+	C = nx.betweenness_centrality(G)
+	plt.figure(4) # Betweenness centrality 
+	generate_figure(G, range(N), [C[i] for i in range(N)], 
+		"Colormap of Betweenness Centrality Scores", 'cm_between_'+name+'.png')
+
 	plt.show()
 
+	
 
 def test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
 	# test sbm method
@@ -93,23 +102,42 @@ def test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
 	plt.show()
 
 
-def test_pathcore(G, name):
-	# Test path core method
-	# name is name of graph for saving purposes
-	N = nx.number_of_nodes(G)
+
+def test_coefficients(T, p, size_c, size_p):
+	# Test different core-periphery coefficients on SBM 
+
+	iters = 5 # Number of iterations over which to average for each k
+	k_range = np.arange(1,2,0.05) 
+	f_suffix = '_sc='+str(size_c)+'_sp='+str(size_p)+'its='+str(iters)+'.png'
+	
+	h_coeffs = [] # Holme coefficients
+	d_coeffs = [] # Degree coefficients
+
+	for k in k_range:
+		avg_h_coeff, avg_d_coeff = 0, 0
+		for i in range(iters):
+			G = sbm(k,p,size_c,size_p)
+			avg_h_coeff += holme_coefficient(G,T) 
+			avg_d_coeff += degree_coefficient(G,T)
+
+		h_coeffs.append(avg_h_coeff / float(iters))
+		d_coeffs.append(avg_d_coeff / float(iters))
 
 	plt.figure(1)
-	generate_figure(G, range(N), path_core(G),
-		"Colormap of Path-Core Scores", 'cm_pathcore_'+name+'.png')
+	plt.plot(k_range, h_coeffs, 'go--')
+	plt.ylabel('Value')
+	plt.xlabel('k')
+	plt.title('Holme Coefficient')
+	plt.savefig('plots/h_coeff'+f_suffix)
 
-	# Test pathcore against betweenness centrality
-	C = nx.betweenness_centrality(G)
 	plt.figure(2)
-	generate_figure(G, range(N), [C[i] for i in range(N)], 
-		"Colormap of Betweenness Centrality Scores", 'cm_between_'+name+'.png')
+	plt.plot(k_range, d_coeffs, 'go--')
+	plt.ylabel('Value')
+	plt.xlabel('k')
+	plt.title('Naive Degree Coefficient')
+	plt.savefig('plots/d_coeff'+f_suffix)
 
 	plt.show()
-
 
 
 
@@ -126,7 +154,7 @@ size_c, size_p = 30, 30
 
 
 G1 = nx.karate_club_graph()
-G2 = sbm(2, 0.25, 15,15) 
+G2 = sbm(1.3, 0.25, 15,15) 
 
 # SBM tests
 #test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p)
@@ -139,9 +167,10 @@ G2 = sbm(2, 0.25, 15,15)
 #test_pathcore(G1, 'karate')
 #test_pathcore(G2, 'strong_sbm')
 
-# Test Holme coefficient
-coeff = holme_coefficient(G2, 50)
-print(coeff)
+# Test coefficients
+test_coefficients(50, 0.25, 15, 15)
+
+
 
 
 

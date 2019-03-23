@@ -5,6 +5,7 @@
 import numpy as np
 import networkx as nx
 import copy
+from functools import reduce
 
 def sbm(k, p, size_c, size_p):
 	# Return graph drawn from stochastic block model 
@@ -133,6 +134,10 @@ def CC(U, closeness):
 	# Calculate closeness of the subgraph U
 	if nx.is_empty(U): return 0
 	
+	for i in U:
+		if closeness[i] == 0:
+			U.remove_node(i)
+	
 	denom = sum([1/float(closeness[i]) for i in U.nodes()])
 	return len(U) / float(denom)
 
@@ -166,6 +171,48 @@ def holme_coefficient(G, T):
 	avg_coeff /= float(T)
 
 	return max_CC(G, max_degree, N) - avg_coeff
+
+def max_DC(G):
+	# Calculate degree coefficient of G
+
+	# sort by degrees, in reverse
+	sorted_degs = sorted(G.degree(), key=lambda x: x[1], reverse=True)
+
+	max_score = 0
+	for k in range(1,nx.number_of_nodes(G)):
+		# average degree of first k nodes
+		avg_core = sum(i[1] for i in sorted_degs[:k]) / float(k)
+		# Create subgraph with these first k nodes
+		H = copy.deepcopy(G)
+		H.remove_nodes_from([i[0] for i in sorted_degs[:k]])
+		H_degrees = [H.degree(i) for i in H.nodes()]
+		avg_per = 1 + reduce(lambda x,y: x + y, H_degrees, 0) / float(len(H_degrees))
+		score = avg_core / float(avg_per)
+		# Update if maximum seen so far
+		if score > max_score: max_score = score
+
+	return max_score
+
+
+
+def degree_coefficient(G, T):
+	# Calculate average degree coefficient of G
+	# - T is number of trials taken to be the average for null model
+
+	deg_sequence = list(map(lambda i: G.degree(i), range(nx.number_of_nodes(G))))
+	max_degree = max(deg_sequence)
+
+	# Compute average coefficient for graphs with same degree sequence
+	avg_coeff = 0
+	for t in range(T):
+		# Create graph with same degree sequence; remove multiedges and self loops
+		H = nx.Graph(nx.configuration_model(deg_sequence))
+		H.remove_edges_from(nx.selfloop_edges(H))
+		avg_coeff += max_DC(H)
+
+	if not T==0: avg_coeff /= float(T)
+
+	return max_DC(G) - avg_coeff 
 
 
 
