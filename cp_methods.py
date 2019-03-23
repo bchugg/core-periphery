@@ -5,6 +5,38 @@
 import numpy as np
 import networkx as nx
 
+def sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
+	# Return graph drawn from stochastic block model 
+	# with size_c nodes in core, size_p in periphery, 
+	# and probabilities 
+	# - prob_cp between core and periphery nodes
+	# - prob_cc between core nodes 
+	# - prob_pp between peripheral nodes
+	# Returns an unweighted and undirected matrix
+
+	N = size_c + size_p
+	G = nx.Graph()
+	G.add_nodes_from(range(N)) # first size_c nodes will be core
+
+	for i in range(N):
+		for j in range(i+1,N):
+			p = np.random.random()
+			if i < size_c and j < size_c: # Both in core
+				if p < prob_cc: 
+					G.add_edge(i,j)
+			elif i < size_c:			# One in core, on in periphery
+				if p < prob_cp:
+				 	G.add_edge(i,j)
+			else:						# Both in periphery 
+				if p < prob_pp:
+					G.add_edge(i,j)
+
+	return G
+
+
+
+
+
 def periphery_profile(G):
 # Return periphery profile and persistences 
 # of undirected and unweighted graph G. Returns as 
@@ -60,6 +92,6 @@ def periphery_profile(G):
 
 	return [Profile, Persistences] 
 
-	
+
 
 
