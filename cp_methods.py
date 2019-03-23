@@ -1,13 +1,14 @@
+# Small library implementing various core-periphery detection algorithms 
+# and related functions. 
+# Created for Networks Mini-Project, University of Oxford.  
+
 import numpy as np
 import networkx as nx
-import matplotlib.pyplot as plt
 
-G = nx.karate_club_graph()
-
-
-
-# Return periphery profile of undirected graph G
 def periphery_profile(G):
+# Return periphery profile and persistences 
+# of undirected and unweighted graph G. Returns as 
+# tuple [profile, persistences]
 
 	A = nx.adjacency_matrix(G)
 	N = nx.number_of_nodes(G)
@@ -29,7 +30,7 @@ def periphery_profile(G):
 	alpha_num = 0
 	alpha_denom = 0
 
-	# Initialize P with node with lowest weight
+	# Initialize Profile with node with lowest weight
 	degrees = [G.degree(i) for i in range(N)]
 	Profile.append(degrees.index(min(degrees)))
 	
@@ -38,9 +39,9 @@ def periphery_profile(G):
 		min_index = 0
 		min_p_num = 0
 		for i in range(N):
-		# Only check i if it's not in P already
+		# Only check i if it's not in Profile already
 			if not (i in Profile):
-				# Calculate alpha(P+i), beginning with numerator change
+				# Calculate alpha(Propfile+i), beginning with numerator change
 				num = np.sum([pi[i]*T[i,k] + pi[k]*T[k,i] for k in Profile])
 				# and denominator
 				denom = pi[i]
@@ -59,8 +60,6 @@ def periphery_profile(G):
 
 	return [Profile, Persistences] 
 
+	
 
-[Profile, Persistences] = periphery_profile(G)
-print("Profile ", str(Profile))
-print("Persistences", str(Persistences))
 
