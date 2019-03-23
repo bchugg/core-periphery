@@ -4,6 +4,7 @@
 
 import numpy as np
 import networkx as nx
+import copy
 
 def sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
 	# Return graph drawn from stochastic block model 
@@ -91,6 +92,50 @@ def periphery_profile(G):
 		Persistences.append(alpha_num / float(alpha_denom))
 
 	return [Profile, Persistences] 
+
+
+def sp_coeff(G,i,j,k):
+	# Compute shortest paths coefficient for node i and edge (j,k) in G
+	# Return 0 if no path between j and k
+	coeff = 0
+	try:
+		paths = [p for p in nx.all_shortest_paths(G,j,k)] # All shortest paths between j and k
+		paths_with_i = len(list(filter(lambda x: i in x, paths)))
+		coeff = paths_with_i / float(len(paths))
+	finally: 
+		return coeff
+
+
+
+def path_core(G):
+	# Compute the path-core for each vertex in the undirected graph G
+	# Return array of path cores
+
+	N = nx.number_of_nodes(G)
+	path_cores = []
+	
+	for i in range(N):
+		# Compute path score of i
+		G_without_i = copy.deepcopy(G)
+		G_without_i.remove_node(i)
+		score  = 0
+		for e in [e for e in G_without_i.edges()]:
+			G.remove_edge(*e)
+			score += sp_coeff(G, i, e[0], e[1])
+			G.add_edge(*e)
+
+		path_cores.append(score)
+
+	return path_cores
+
+
+		
+
+
+
+
+
+
 
 
 

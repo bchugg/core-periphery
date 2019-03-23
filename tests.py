@@ -34,6 +34,7 @@ def test_random_walk(G, name):
 
 
 def test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
+	# test sbm method
 	SBM = sbm(prob_cp, prob_cc, prob_pp, size_c, size_p)
 	N = size_c + size_p
 	A = nx.to_numpy_matrix(SBM)
@@ -54,19 +55,35 @@ def test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
 	plt.show()
 
 
+def test_pathcore(G, name):
+	# Test path core method
+	# name is name of graph for saving purposes
+	generate_figure(G, range(nx.number_of_nodes(G)), path_core(G), 
+		"Colormap of Path-Core Scores", 'cm_pathcore_'+name+'.png')
+	plt.show()
+
 
 
 # Run tests
 
 
-prob_cp, prob_cc, prob_pp, size_c, size_p = 0.7, 0.8, 0.2, 15, 25
-test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p)
+#prob_cp, prob_cc, prob_pp, size_c, size_p = 0.7, 0.8, 0.2, 15, 25
+prob_cp, prob_cc, prob_pp, size_c, size_p = 0.5, 0.75, 0.3, 15, 25
+
 
 G1 = nx.karate_club_graph()
 G2 = sbm(prob_cp, prob_cc, prob_pp, size_c, size_p) 
+
+# SBM tests
+#test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p)
+
+# Random Walk tests
 #test_random_walk(G1, 'karate')
 #test_random_walk(G2, 'strong_sbm')
 
+# Tests for path-core
+#test_pathcore(G1, 'karate')
+test_pathcore(G2, 'weak_sbm')
 
 
 
