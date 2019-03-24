@@ -9,8 +9,8 @@ def generate_figure(G, nodelist, colorlist, title="", saveas=""):
 	# Generate graph figure using Kamada Kawai Layout
 	pos = nx.kamada_kawai_layout(G)
 	nx.draw_networkx_edges(G, pos)
-	nodes = nx.draw_networkx_nodes(G, pos, node_list=nodelist,
-		node_color=colorlist, cmap=plt.cm.jet)
+	nodes = nx.draw_networkx_nodes(G, pos, node_list=nodelist, 
+		node_size=100, node_color=colorlist, cmap=plt.cm.jet)
 	plt.colorbar(nodes)
 	plt.axis('off')
 	plt.title(title)
@@ -60,21 +60,21 @@ def colormap_test(G, name):
 	[profile, persistences] = periphery_profile(G)
 	plt.figure(1) # Random walker method
 	generate_figure(G, range(N), list(map(lambda i: persistences[profile.index(i)], range(N))), 
-				"Colormap of CP Structure using Random Walkers", 'cm_rw_'+name+'png')
+				"Random Walker Persistence", 'cm_rw_'+name+'.png')
 
 	plt.figure(2) # Path-core method
 	generate_figure(G, range(N), path_core(G),
-		"Colormap of Path-Core Scores", 'cm_pathcore_'+name+'.png')
+		"Path-Core", 'cm_pathcore_'+name+'.png')
 
 	plt.figure(3) # Degree Method
 	generate_figure(G, range(N), list(map(lambda x: G.degree(x), range(N))), 
-				"Colormap of Degree Structure", 'cm_degree_'+name+'.png')
+				"Degree Score", 'cm_degree_'+name+'.png')
 
 
 	C = nx.betweenness_centrality(G)
 	plt.figure(4) # Betweenness centrality 
 	generate_figure(G, range(N), [C[i] for i in range(N)], 
-		"Colormap of Betweenness Centrality Scores", 'cm_between_'+name+'.png')
+		"Betweenness Centrality Score", 'cm_between_'+name+'.png')
 
 	plt.show()
 
@@ -146,20 +146,40 @@ def test_coefficients(T, p, size_c, size_p):
 # Run tests
 
 # Block model parameters
-p = 0.25
-size_c, size_p = 30, 30
+#p = 0.25
+#size_c, size_p = 30, 30
 
 # for k in [1.3, 1.5, 1.8, 2]:
 # 	core_score_vs_index(k, p, size_c, size_p)
 
 
-G1 = nx.karate_club_graph()
-G2 = sbm(1.3, 0.25, 15,15) 
+#G1 = nx.karate_club_graph()
 
-# SBM tests
-#test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p)
+# Colormap tests with SBM
+
+n_c, n_p = 10, 30
+
+p_strong = 0.2
+k_strong = 2.2
+SBM_strong = sbm(k_strong, p_strong, n_c, n_p)
+#colormap_test(SBM_strong, 'sbm_strong')
+
+p_weak = 0.25
+k_weak = 1.3 
+SBM_weak = sbm(k_weak, p_weak, n_c, n_p)
+#colormap_test(SBM_weak, 'sbm_weak')
+
+
+# Colormap tests
+data = nx.read_edgelist("graphs/train.txt", nodetype=int, comments='%')
+
+G = nx.Graph() 
+G.add_nodes_from(range(len(data.nodes())))
+G.add_edges_from([(e[0]-1,e[1]-1) for e in data.edges()])
+colormap_test(G, 'train')
 
 # Random Walk tests
+
 #test_random_walk(G1, 'karate')
 #test_random_walk(G2, 'strong_sbm')
 
@@ -168,7 +188,7 @@ G2 = sbm(1.3, 0.25, 15,15)
 #test_pathcore(G2, 'strong_sbm')
 
 # Test coefficients
-test_coefficients(50, 0.25, 15, 15)
+#test_coefficients(50, 0.25, 15, 15)
 
 
 
