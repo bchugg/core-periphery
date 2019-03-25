@@ -80,9 +80,9 @@ def colormap_test(G, name):
 
 	
 
-def test_sbm(prob_cp, prob_cc, prob_pp, size_c, size_p):
+def test_sbm(k, p, size_c, size_p):
 	# test sbm method
-	SBM = sbm(prob_cp, prob_cc, prob_pp, size_c, size_p)
+	SBM = sbm(k, p, size_c, size_p)
 	N = size_c + size_p
 	A = nx.to_numpy_matrix(SBM)
 
@@ -146,8 +146,12 @@ def test_coefficients(T, p, size_c, size_p):
 # Run tests
 
 # Block model parameters
-#p = 0.25
-#size_c, size_p = 30, 30
+p = 0.25
+size_c, size_p = 10, 30
+
+
+test_sbm(1.8, p, size_c, size_p)
+
 
 # for k in [1.3, 1.5, 1.8, 2]:
 # 	core_score_vs_index(k, p, size_c, size_p)
@@ -176,16 +180,8 @@ data = nx.read_edgelist("graphs/train.txt", nodetype=int, comments='%')
 G = nx.Graph() 
 G.add_nodes_from(range(len(data.nodes())))
 G.add_edges_from([(e[0]-1,e[1]-1) for e in data.edges()])
-colormap_test(G, 'train')
+#colormap_test(G, 'train')
 
-# Random Walk tests
-
-#test_random_walk(G1, 'karate')
-#test_random_walk(G2, 'strong_sbm')
-
-# Tests for path-core
-#test_pathcore(G1, 'karate')
-#test_pathcore(G2, 'strong_sbm')
 
 # Test coefficients
 #test_coefficients(50, 0.25, 15, 15)
